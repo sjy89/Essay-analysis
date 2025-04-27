@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>分析历史</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .history-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .history-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .preview-text {
+            color: #666;
+            margin: 10px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <h1>历史分析记录</h1>
+        <div id="history-list"></div>
+        <button onclick="window.location.href='/index'" class="return-btn">返回分析</button>
+    </div>
+
+    <script>
+        // 加载历史数据
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history')
+                const { data } = await response.json()
+                console.log(data);
+                renderHistory(data)
+            } catch (error) {
+                console.error('加载失败:', error)
+            }
+        }
+
+        // 渲染历史列表
+        function renderHistory(list) {
+            const container = document.getElementById('history-list')
+            container.innerHTML = list.map((item, index) => `
+                <div class="history-item">
+                    <h3>记录 #${index + 1}</h3>
+                    <div class="preview-text">${item.essay.substring(0, 100)}...</div>
+                    <button onclick="viewDetail(${index})">查看详情</button>
+                </div>
+            `).join('')
+        }
+
+        // 查看详情
+        function viewDetail(index) {
+        sessionStorage.setItem('analysisData', JSON.stringify({
+            mode: 'history',
+            historyIndex: index // 使用统一键名
+        }))
+        window.location.href = '/analysis'
+        }
+
+        // 初始化加载
+        loadHistory()
+    </script>
+</body>
+</html>

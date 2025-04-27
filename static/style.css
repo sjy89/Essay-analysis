@@ -1,0 +1,152 @@
+/* 公共样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f7fa;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    filter: brightness(0.9);
+}
+
+/* 主页面样式 */
+#form-container {
+    max-width: 800px;
+    margin: 50px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#function-bar {
+    margin-bottom: 20px;
+}
+
+#function-bar button {
+    margin: 0 10px;
+    background: #4CAF50;
+    color: white;
+}
+
+#analyze-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+textarea {
+    width: 100%;
+    height: 200px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: vertical;
+}
+
+/* 分析页面样式 */
+.analysis-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.result-card {
+    margin-bottom: 25px;
+    border-left: 4px solid #2196F3;
+}
+
+.pagination {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#prev-page {
+    background: #2196F3;
+    color: white;
+    margin-right: 10px;
+}
+
+#next-page {
+    background: #4CAF50;
+    color: white;
+}
+
+pre {
+    white-space: pre-wrap;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+/* 合并后的.loading-overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+}
+
+/* 合并动画关键帧 */
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* 统一加载器尺寸 */
+[class*="-spinner"] {
+    width: 50px;
+    height: 50px;
+}
+
+.nebula-spinner {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle at 30% 30%, #2196F3 10%, transparent 11%),
+                radial-gradient(circle at 70% 70%, #FF4081 10%, transparent 11%);
+    border-radius: 50%;
+    animation: 
+        spin 3s linear infinite,
+        nebula-pulse 2s ease-in-out infinite;
+}
+
+/* 精简后的文字效果 */
+.poetic-text {
+    font: 500 1.2em/1.5 'Microsoft YaHei', sans-serif;
+    color: #4A5568;
+    margin-top: 20px;
+    text-shadow: 0 2px 4px rgba(33, 149, 243, 0.1);
+}
+
+
+/* 新增历史页专用样式 */
+.history-container {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+}
+
+.return-btn {
+    background: #6c757d;
+    margin-top: 20px;
+}
+
+.return-btn:hover {
+    background: #5a6268;
+}

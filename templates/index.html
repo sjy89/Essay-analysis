@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智笔慧评——小学作文智能批改系统</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div id="form-container">
+        <h1>智笔慧评——小学作文智能批改系统</h1>
+        <div id="function-bar">
+            <button id="text-upload">文本上传</button>
+            <button id="image-upload">图片上传</button>
+            <button id="history-view">历史记录</button>
+        </div>
+        <form id="analyze-form" class="hidden">
+            <textarea id="essay-content" name="content" placeholder="Paste your essay here..." class="hidden"></textarea>
+            <input type="file" id="image-file" accept="image/*" class="hidden">
+            <button id="analyze-button" type="submit" disabled>Analyze</button>
+        </form>
+    </div>
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="nebula-spinner"></div>
+            <p class="poetic-text">正在深度解析作文结构……</p>
+        </div>
+    </div>
+
+    <script>
+        // 事件绑定
+        /*
+        document.getElementById('text-upload').addEventListener('click', () => {
+            document.getElementById('analyze-form').classList.remove('hidden');
+        });
+
+        document.getElementById('image-upload').addEventListener('click', () => {
+            alert('Image upload not implemented yet.');
+        });
+        */
+        // 切换模式 (文本或图片)
+        let uploadMode = 'text'; // 默认为文本模式
+
+        // 文本上传按钮事件
+        document.getElementById('text-upload').addEventListener('click', () => {
+            uploadMode = 'text';
+            // 显示文本框，隐藏图片上传控件
+            document.getElementById('essay-content').classList.remove('hidden');
+            document.getElementById('image-file').classList.add('hidden');
+            document.getElementById('analyze-button').disabled = false;
+        });
+
+        // 图片上传按钮事件
+        document.getElementById('image-upload').addEventListener('click', () => {
+            uploadMode = 'image';
+            // 显示图片上传控件，隐藏文本框
+            document.getElementById('essay-content').classList.add('hidden');
+            document.getElementById('image-file').classList.remove('hidden');
+            document.getElementById('analyze-button').disabled = false;
+        });
+        document.getElementById('history-view').addEventListener('click', () => {
+            window.location.href = '/history'  // 直接跳转独立页面
+        })
+        /*
+        // 表单提交
+        document.getElementById('analyze-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const analyzeButton = document.getElementById('analyze-button');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            try {
+                // 显示加载状态
+                analyzeButton.disabled = true;
+                analyzeButton.textContent = 'Analyzing...';
+                loadingOverlay.style.display = 'flex';
+                
+                const content = document.getElementById('essay-content').value;
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `content=${encodeURIComponent(content)}`
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                // 成功响应处理
+                const data = await response.json();
+                sessionStorage.setItem('analysisData', JSON.stringify({
+                    mode: 'analysis',
+                    roundsResult: data.rounds_result,
+                    scores: data.scores,
+                    currentPage: 0
+                }));
+                window.location.href = '/analysis';
+            } catch (error) {
+                // 错误处理
+                alert('分析失败: ' + error.message);
+            } finally {
+                // 无论成功失败都重置状态
+                analyzeButton.disabled = false;
+                analyzeButton.textContent = 'Analyze';
+                loadingOverlay.style.display = 'none';
+            }
+        });
+        */
+       // 表单提交处理
+       document.getElementById('analyze-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const analyzeButton = document.getElementById('analyze-button');
+            const loadingOverlay = document.getElementById('loading-overlay');
+
+            try {
+                // 显示加载状态
+                analyzeButton.disabled = true;
+                analyzeButton.textContent = 'Analyzing...';
+                loadingOverlay.style.display = 'flex';
+
+                if (uploadMode === 'text') {
+                    // 文本模式
+                    const content = document.getElementById('essay-content').value;
+                    if (!content.trim()) {
+                        alert('请输入作文内容！');
+                        return;
+                    }
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `content=${encodeURIComponent(content)}`
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    sessionStorage.setItem('analysisData', JSON.stringify({
+                        mode: 'analysis',
+                        roundsResult: data.rounds_result,
+                        scores: data.scores,
+                        currentPage: 0
+                    }));
+                    window.location.href = '/analysis';
+                } else if (uploadMode === 'image') {
+                    // 图片模式
+                    const fileInput = document.getElementById('image-file');
+                    const file = fileInput.files[0];
+                    if (!file) {
+                        alert('请选择一个图片文件');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    const response = await fetch('/upload_image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                    const data = await response.json();
+                    sessionStorage.setItem('analysisData', JSON.stringify({
+                        mode: 'analysis',
+                        roundsResult: data.rounds_result,
+                        scores: data.scores,
+                        currentPage: 0
+                    }));
+                    window.location.href = '/analysis';
+                }
+            } catch (error) {
+                alert('分析失败: ' + error.message);
+            } finally {
+                analyzeButton.disabled = false;
+                analyzeButton.textContent = 'Analyze';
+                loadingOverlay.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

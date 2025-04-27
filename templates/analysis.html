@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <style>
+        .analysis-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        #radar-container {
+            height: 400px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="analysis-container">
+        <div id="result"></div>
+        <div class="pagination">
+            <button id="prev-page">Previous</button>
+            <button id="next-page">Next</button>
+        </div>
+        <div id="radar-container"></div>
+        <button onclick="window.location.href='/index'">Return to Main</button>
+    </div>
+
+    <script>
+        window.addEventListener('beforeunload', () => {
+        sessionStorage.removeItem('analysisData')
+        })
+        // 初始化数据
+        let analysisData = null;
+        let currentPage = 0;
+
+        // 页面加载
+        window.addEventListener('load', () => {
+        const rawData = sessionStorage.getItem('analysisData')
+        
+        if (rawData) {
+            const params = JSON.parse(rawData)
+            
+            // 模式判断
+            if (params.mode === 'history') {
+            fetch('/api/history')
+                .then(res => res.json())
+                .then(({ data }) => {
+                // 获取指定历史记录
+                const historyItem = data[params.historyIndex]
+                // 构建符合分析页需要的数据结构
+                analysisData = {
+                    roundsResult: historyItem.result,
+                    scores: historyItem.scores,
+                    currentPage: 0
+                }
+                renderPage()
+                renderRadarChart()
+                initAnalysis()
+                })
+            } else {
+            // 常规分析模式
+            analysisData = params
+            renderPage()
+            renderRadarChart()
+            initAnalysis()
+            }
+        }
+        })
+
+        // 初始化分析模式
+        function initAnalysis() {
+            currentPage = 0;
+            document.getElementById('prev-page').addEventListener('click', () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                }
+            });
+            document.getElementById('next-page').addEventListener('click', () => {
+                if (currentPage < analysisData.roundsResult.length - 1) {
+                    currentPage++;
+                    renderPage();
+                }
+            });
+        }
+
+        // 渲染当前页
+        function renderPage() {
+            document.getElementById('result').innerHTML = 
+                marked.parse(analysisData.roundsResult[currentPage]);
+            updatePagination();
+        }
+
+        // 更新分页状态
+        function updatePagination() {
+            document.getElementById('prev-page').disabled = currentPage <= 0;
+            document.getElementById('next-page').disabled = 
+                currentPage >= analysisData.roundsResult.length - 1;
+        }
+
+        // 渲染雷达图
+        function renderRadarChart() {
+            const chart = echarts.init(document.getElementById('radar-container'));
+            chart.setOption({
+                title: { text: '成绩雷达图' },
+                tooltip: {},
+                radar: {
+                    indicator: [
+                        { name: 'Spelling', max: 100 },
+                        //{ name: 'Vocabulary', max: 100 },
+                        { name: 'Structure', max: 100 },
+                        { name: 'Content', max: 100 },
+                        { name: 'Rhetoric', max: 100 }
+                    ]
+                },
+                series: [{
+                    type: 'radar',
+                    data: [{ value: analysisData.scores }]
+                }]
+            });
+        }
+
+        // 渲染历史记录
+        function renderHistory(history) {
+            let html = '<h2>Analysis History</h2>';
+            history.forEach((entry, index) => {
+                html += `<div class="result-card">
+                    <h3>Entry #${index + 1}</h3>
+                    <pre>${entry.essay}</pre>
+                    <div class="analysis-result">
+                        ${entry.result.map(item => marked.parse(item)).join('<hr>')}
+                    </div>
+                </div>`;
+            });
+            document.getElementById('result').innerHTML = html;
+            document.querySelector('.pagination').style.display = 'none';
+            document.getElementById('radar-container').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
